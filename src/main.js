@@ -2,6 +2,7 @@ import babelpolyfill from 'babel-polyfill'
 import Vue from 'vue'
 import App from './App'
 import ElementUI from 'element-ui'
+import iView from 'iview'
 import 'element-ui/lib/theme-default/index.css'
 //import './assets/theme/theme-green/index.css'
 import VueRouter from 'vue-router'
@@ -15,6 +16,7 @@ Mock.bootstrap();
 import 'font-awesome/css/font-awesome.min.css'
 
 Vue.use(ElementUI)
+Vue.use(iView)
 Vue.use(VueRouter)
 Vue.use(Vuex)
 

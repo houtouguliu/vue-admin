@@ -1,411 +1,115 @@
 <template>
 	<section>
-		<!--下拉列表-->
-		<el-col :span="24" class="toolbar">
-			
-		</el-col>
 		<!--工具条-->
-		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-
-			<el-form :inline="true" :model="filters">
-				<el-form-item>
-					<span class="search-modular" style="width:25%" v-for="(term, index) in terms">
-
-		            <label class="search-title">{{term.title}}：</label>
-		            <!-- 下拉框 -->
-		            <el-select v-model='term.select' v-if="term.type=='select'" clearable :filterable="term.filter" :multiple="term.multiple"
-		              :placeholder="term.placeholder" style="width:195px" size="mini" :class="term.className" @change="term.change()">
-		              <el-option v-for="option in term.options" :key="option.id" :label="option.name" :value="option.id">
-		              </el-option>
-		            </el-select>
-
-		          </span>
-
-				</el-form-item>
-				<el-form-item>
-					<el-input v-model="filters.name" placeholder="请输入名称或ID查询"></el-input>
-				</el-form-item>
-				<el-form-item>
-					<el-button type="primary" v-on:click="getUsers">查询</el-button>
-				</el-form-item>
-				<el-form-item>
-					<el-button type="primary" @click="handleAdd">新增</el-button>
-				</el-form-item>
-			</el-form>
+		<el-col :span="24" class="toolbar">
+			<label>状态：</label>
+			<el-select @change="change" v-model="value">
+				<el-option
+				v-for="item in options"
+				:key="item.value"
+				:label="item.label"
+				:value="item.value">
+				</el-option>
+			</el-select>
+			<el-input style="width:200px;" placeholder="请输入名称或者ID查询" v-model="searchVal" clearable>
+			</el-input>
+			<el-button @click="searchAdx" type="primary" icon="el-icon-search">搜索</el-button>
 		</el-col>
 
 		<!--列表-->
-		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
-			<el-table-column type="selection" width="55">
-			</el-table-column>
-			<el-table-column type="index" width="60">
-			</el-table-column>
-			<el-table-column prop="name" label="姓名" width="120" sortable>
-			</el-table-column>
-			<el-table-column prop="sex" label="性别" width="100" :formatter="formatSex" sortable>
-			</el-table-column>
-			<el-table-column prop="age" label="年龄" width="100" sortable>
-			</el-table-column>
-			<el-table-column prop="birth" label="生日" width="120" sortable>
-			</el-table-column>
-			<el-table-column prop="addr" label="地址" min-width="180" sortable>
-			</el-table-column>
-			<el-table-column label="操作" width="150">
-				<template scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
-				</template>
-			</el-table-column>
-		</el-table>
-
-		<!--工具条-->
-		<el-col :span="24" class="toolbar">
-			<el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
-			<el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20" :total="total" style="float:right;">
-			</el-pagination>
-		</el-col>
-
-		<!--编辑界面-->
-		<el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
-			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-				<el-form-item label="姓名" prop="name">
-					<el-input v-model="editForm.name" auto-complete="off"></el-input>
-				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="editForm.sex">
-						<el-radio class="radio" :label="1">男</el-radio>
-						<el-radio class="radio" :label="0">女</el-radio>
-					</el-radio-group>
-				</el-form-item>
-				<el-form-item label="年龄">
-					<el-input-number v-model="editForm.age" :min="0" :max="200"></el-input-number>
-				</el-form-item>
-				<el-form-item label="生日">
-					<el-date-picker type="date" placeholder="选择日期" v-model="editForm.birth"></el-date-picker>
-				</el-form-item>
-				<el-form-item label="地址">
-					<el-input type="textarea" v-model="editForm.addr"></el-input>
-				</el-form-item>
-			</el-form>
-			<div slot="footer" class="dialog-footer">
-				<el-button @click.native="editFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
-			</div>
-		</el-dialog>
-
-		<!--新增界面-->
-		<el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false">
-			<el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-				<el-form-item label="姓名" prop="name">
-					<el-input v-model="addForm.name" auto-complete="off"></el-input>
-				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="addForm.sex">
-						<el-radio class="radio" :label="1">男</el-radio>
-						<el-radio class="radio" :label="0">女</el-radio>
-					</el-radio-group>
-				</el-form-item>
-				<el-form-item label="年龄">
-					<el-input-number v-model="addForm.age" :min="0" :max="200"></el-input-number>
-				</el-form-item>
-				<el-form-item label="生日">
-					<el-date-picker type="date" placeholder="选择日期" v-model="addForm.birth"></el-date-picker>
-				</el-form-item>
-				<el-form-item label="地址">
-					<el-input type="textarea" v-model="addForm.addr"></el-input>
-				</el-form-item>
-			</el-form>
-			<div slot="footer" class="dialog-footer">
-				<el-button @click.native="addFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
-			</div>
-		</el-dialog>
+		<xfTable :tables="tables" highlight-current-row
+        @handleCurrentChange="handleCurrentChange" @handleSizeChange="handleSizeChange">
+		</xfTable>
 	</section>
 </template>
 
 <script>
+	import xfTable from '../../components/xfTable/xfTable'
 	import util from '../../common/js/util'
-	//import NProgress from 'nprogress'
-	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser } from '../../api/api';
-	function downloadData (params) {
-	  let userInfo = new URLSearchParams()
-	  userInfo.append('userId', params.userId)
-	  userInfo.append('accessToken', params.accessToken)
-	  userInfo.append('method', params.method)
-	  userInfo.append('startDate', params.startDate)
-	  userInfo.append('endDate', params.endDate)
-	  userInfo.append('sortD', params.sortD)
-	  userInfo.append('sortF', params.sortF)
-	  userInfo.append('slotId', params.slotId)
-	  userInfo.append('oId', params.oId)
-	  userInfo.append('pId', params.pId)
-	  userInfo.append('fId', params.fId)
-	  userInfo.append('table', 'slot')
-	  userInfo.append('page', params.page)
-	  userInfo.append('pageNum', params.pageNum)
-	  return new Promise((resolve, reject) => {
-	    axios.post(exportTableUrl, userInfo)
-	      .then(res => {
-	        if (res.data.code == '100000008') {
-	          window.location.href = jumpUrl
-	        }
-	        resolve(res)
-	      })
-	  })
-	}
-	function search ({userId = '', accessToken = '', method = ''}) {
-	  let params = new URLSearchParams()
-	  params.append('userId', userId)
-	  params.append('accessToken', accessToken)
-	  params.append('method', method)
-	  return new Promise((resolve, reject) => {
-	    axios.post(slotListUrl, params)
-	      .then(res => {
-	        if (res.data.code == '100000008') {
-	          window.location.href = jumpUrl
-	        }
-	        resolve(res)
-	      })
-	      .catch(error => {
-	        reject(error)
-	      })
-	  })
-	}
-	function formatDate (date) {
-	  var y = date.getFullYear()
-	  var m = date.getMonth() + 1
-	  m = m < 10 ? '0' + m : m
-	  var d = date.getDate()
-	  d = d < 10 ? ('0' + d) : d
-	  return y + '-' + m + '-' + d
-	}
-	function searchTable (params) {
-	  let userInfo = new URLSearchParams()
-	  userInfo.append('userId', params.userId)
-	  userInfo.append('accessToken', params.accessToken)
-	  userInfo.append('method', params.method)
-	  userInfo.append('startDate', params.startDate)
-	  userInfo.append('endDate', params.endDate)
-	  userInfo.append('sortD', params.sortD)
-	  userInfo.append('sortF', params.sortF)
-	  userInfo.append('slotId', params.slotId)
-	  userInfo.append('oId', params.oId)
-	  userInfo.append('pId', params.pId)
-	  userInfo.append('fId', params.fId)
-	  userInfo.append('page', params.page)
-	  userInfo.append('pageNum', params.pageNum)
-	  return new Promise((resolve, reject) => {
-	    axios.post(slotUrl, userInfo)
-	      .then(res => {
-	        if (res.data.code == '100000008') {
-	          window.location.href = jumpUrl
-	        }
-	        resolve(res)
-	      })
-	  })
-	}
+	import media from '../../common/js/config/media'
+	import mockdata from "../../mock/data/list";
 	export default {
+		components:{
+			xfTable
+		},
 		data() {
 			return {
-				filters: {
-					name: ''
-				},
-				users: [],
-				total: 0,
-				page: 1,
-				listLoading: false,
-				sels: [],//列表选中列
-
-				editFormVisible: false,//编辑界面是否显示
-				editLoading: false,
-				editFormRules: {
-					name: [
-						{ required: true, message: '请输入姓名', trigger: 'blur' }
-					]
-				},
-				//编辑界面数据
-				editForm: {
-					id: 0,
-					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
-				},
-
-				addFormVisible: false,//新增界面是否显示
-				addLoading: false,
-				addFormRules: {
-					name: [
-						{ required: true, message: '请输入姓名', trigger: 'blur' }
-					]
-				},
-				//新增界面数据
-				addForm: {
-					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
-				},
-				terms: [{
-		            title: '状态',
-		            type: 'select',
-		            multiple: false,
-		            filter: true,
-		            options: [],
-		            select: '',
-		            placeholder: '全部',
-		            change: () => {
-		              this.selcetPId = this.terms[0].select.join(',')
-		            }
-		          },
-		        ],
-
+				status:'0',
+				curPage:1,
+				page_size:10,
+				tables:[],
+				options: [{
+					value: '0',
+					label: '已禁用'
+					}, {
+					value: '1',
+					label: '已启用'
+					}],
+				value: '1',//下拉框的默认值
+				searchVal:''
 			}
 		},
 		methods: {
-			//性别显示转换
-			formatSex: function (row, column) {
-				return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知';
+			searchAdx(target){
+				console.log(this.searchVal);
+				this.getAdxList();
+			},
+			change(val){
+				this.status = val;
+				this.getAdxList();
+				console.log(val);
+			},
+			handleSizeChange(val){
+				this.page_size = val;
+				this.getAdxList();
 			},
 			handleCurrentChange(val) {
-				this.page = val;
-				this.getUsers();
+				this.curPage = val;
+				this.getAdxList();
+				//不能只改变tables中的tableData.需要全部赋值
+				//this.tables.tableName="hasdasdsa";//不生效，因为不能只更新其中部分属性
 			},
 			//获取用户列表
-			getUsers() {
+			getAdxList() {
 				let para = {
-					page: this.page,
-					name: this.filters.name
+					curPage: this.curPage,
+					status:this.value,
+					name:this.searchVal,
+					pageNum:this.page_size,
 				};
-				this.listLoading = true;
-				//NProgress.start();
-				getUserListPage(para).then((res) => {
-					this.total = res.data.total;
-					this.users = res.data.users;
-					this.listLoading = false;
-					//NProgress.done();
-				});
-			},
-			//删除
-			handleDel: function (index, row) {
-				this.$confirm('确认删除该记录吗?', '提示', {
-					type: 'warning'
-				}).then(() => {
-					this.listLoading = true;
-					//NProgress.start();
-					let para = { id: row.id };
-					removeUser(para).then((res) => {
-						this.listLoading = false;
-						//NProgress.done();
-						this.$message({
-							message: '删除成功',
-							type: 'success'
-						});
-						this.getUsers();
-					});
-				}).catch(() => {
-
-				});
-			},
-			//显示编辑界面
-			handleEdit: function (index, row) {
-				this.editFormVisible = true;
-				this.editForm = Object.assign({}, row);
-			},
-			//显示新增界面
-			handleAdd: function () {
-				this.addFormVisible = true;
-				this.addForm = {
-					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
-				};
-			},
-			//编辑
-			editSubmit: function () {
-				this.$refs.editForm.validate((valid) => {
-					if (valid) {
-						this.$confirm('确认提交吗？', '提示', {}).then(() => {
-							this.editLoading = true;
-							//NProgress.start();
-							let para = Object.assign({}, this.editForm);
-							para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-							editUser(para).then((res) => {
-								this.editLoading = false;
-								//NProgress.done();
-								this.$message({
-									message: '提交成功',
-									type: 'success'
-								});
-								this.$refs['editForm'].resetFields();
-								this.editFormVisible = false;
-								this.getUsers();
-							});
-						});
-					}
-				});
-			},
-			//新增
-			addSubmit: function () {
-				this.$refs.addForm.validate((valid) => {
-					if (valid) {
-						this.$confirm('确认提交吗？', '提示', {}).then(() => {
-							this.addLoading = true;
-							//NProgress.start();
-							let para = Object.assign({}, this.addForm);
-							para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-							addUser(para).then((res) => {
-								this.addLoading = false;
-								//NProgress.done();
-								this.$message({
-									message: '提交成功',
-									type: 'success'
-								});
-								this.$refs['addForm'].resetFields();
-								this.addFormVisible = false;
-								this.getUsers();
-							});
-						});
-					}
-				});
-			},
-			selsChange: function (sels) {
-				this.sels = sels;
-			},
-			//批量删除
-			batchRemove: function () {
-				var ids = this.sels.map(item => item.id).toString();
-				this.$confirm('确认删除选中记录吗？', '提示', {
-					type: 'warning'
-				}).then(() => {
-					this.listLoading = true;
-					//NProgress.start();
-					let para = { ids: ids };
-					batchRemoveUser(para).then((res) => {
-						this.listLoading = false;
-						//NProgress.done();
-						this.$message({
-							message: '删除成功',
-							type: 'success'
-						});
-						this.getUsers();
-					});
-				}).catch(() => {
-
-				});
+				let that = this;
+				let url="config/media/adxList";
+				media.getAdxList(url,para);
+				var p = new Promise((resolve, reject) => {
+					resolve(mockdata);  //直接点出你生成的假数据对象即可
+				}).then(function(data){
+					that.tables = [{
+						tableName:"Adx列表",
+						columns:[
+							{"label":"ID","fixed":"fixed","prop":"id","width":"100px"},
+							{"label":"名称","fixed":"","prop":"name","width":""},
+							{"label":"状态","fixed":"","prop":"status","width":""},
+							{"label":"审核广告主","fixed":"","prop":"accountUpload","width":""},
+							{"label":"审核创意","fixed":"","prop":"creativeUpload","width":""},
+						],
+						tableData:data.data.list,
+						totalCount:that.page_size,
+						curPage:that.curPage
+					}];
+				}).catch(err=>{
+					console.log(err)
+				})
 			}
 		},
 		mounted() {
-			this.getUsers();
+			this.getAdxList();
 		}
 	}
 
 </script>
 
 <style scoped>
-
+	.el-table .cell{
+		width: auto !important;
+	}
 </style>
