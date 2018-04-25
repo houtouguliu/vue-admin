@@ -26,12 +26,20 @@ const router = new VueRouter({
   routes
 })
 
+//router是路由的管理者，循环routes，先展示login模块
+//登录成功后，进入系统，其实就是切换其他模块展示
+//导航和头部是一直展示的，点击导航中的按钮，router会去找routes中定义该按钮对应的模块并进行展示
+//栏目的展开是Home.vue中单独操作的，跟路由没关系
+
+//用 vue-route 的 beforeEach 实现导航守卫（路由跳转前验证登录）
 router.beforeEach((to, from, next) => {
   //NProgress.start();
+  //如果要跳到登录页面，就把当前session中的用户删除，
   if (to.path == '/login') {
     sessionStorage.removeItem('user');
   }
   let user = JSON.parse(sessionStorage.getItem('user'));
+  //用户不存在，且想去的路由不是登录模块，强制跳到登录，否则就正常跳到用户想去的模块
   if (!user && to.path != '/login') {
     next({ path: '/login' })
   } else {
@@ -50,5 +58,5 @@ new Vue({
   store,
   //components: { App }
   render: h => h(App)
-}).$mount('#app')
+}).$mount('#app')//这里的app是index.html中id为app的标签
 

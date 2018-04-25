@@ -3,6 +3,7 @@
 		<transition name="fade"
 		            mode="out-in">
 			<router-view></router-view>
+			<!--把 router-view 当做是一个容器，它渲染的组件是你使用 vue-router 指定的-->
 		</transition>
 	</div>
 </template>
@@ -13,7 +14,29 @@ export default {
 	components: {
 	}
 }
+//export其实和export default就是写法上面有点差别，
+//一个是导出一个个单独接口，一个是默认导出一个整体接口。
+//使用import命令的时候，用户需要知道所要加载的变量名或函数名，否则无法加载。
+//这里就有一个简单写法不用去知道有哪些具体的暴露接口名，就用export default命令，为模块指定默认输出
+//使用这两种不同的导出方式，其他模块导入的时写法也不一样。
+// 下面比较一下export default和export 输出。
 
+// // 第一组
+// export default function car() { // 输出
+//   // ...
+// }
+
+// import car from 'car'; // 输入
+
+// // 第二组
+// export function car2() { // 输出
+//   // ...
+// };
+
+//import {car2} from 'car2'; // 输入
+
+//可以看到第一组是使用export default，import语句不需要使用大括号；第二组使用export，对应的import语句需要使用大括号，
+//一个模块只能有一个默认输出，所以export default只能使用一次。
 </script>
 
 <style lang="stylus">

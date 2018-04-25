@@ -10,6 +10,7 @@ import Page5 from './views/nav2/Page5.vue'
 import Page6 from './views/nav3/Page6.vue'
 import echarts from './views/charts/echarts.vue'
 import Media from './views/config/Media.vue'
+import Industry from './views/config/Industry.vue'
 
 let routes = [
     {
@@ -54,6 +55,7 @@ let routes = [
         iconCls:'fa fa-id-card-o',
         children:[
             { path: '/media', component: Media, name: 'Adx列表' },
+            { path: '/industry', component: Industry, name: '行业列表' },
         ]
     },
     {
